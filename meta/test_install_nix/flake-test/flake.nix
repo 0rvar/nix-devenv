@@ -22,6 +22,9 @@
           buildInputs = [
             pkgs.ripgrep
           ];
+          shellHook = ''
+            export HELLO_FROM_FLAKE="Hey from flake.nix via .envrc"
+          '';
         };
       }
     );

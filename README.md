@@ -4,6 +4,10 @@ This repo collects my forbidden techniques for setting up development environmen
 
 ## Nix and Direnv setup script
 
-This script installs Nix and Direnv, installs a much faster (caching) use_flake implementation and sets up necessary shell configuration. It uses the [Determinate systems Nix installer](https://determinate.systems/posts/determinate-nix-installer/) which is a popular installer that sets some sane defaults, like enabling flake support.
+[scripts/install_nix.sh](scripts/install_nix.sh) is a script that sets up a Nix development environment with Direnv.
+
+It installs Nix and Direnv, installs a much faster (caching) use_flake implementation and configures the shell configuration. It uses the [Determinate systems Nix installer](https://determinate.systems/posts/determinate-nix-installer/) which is a popular installer that sets some sane defaults, like enabling flake support.
 
 I recommend copying this file into your repo and updating your README instructions to include running it first thing.
+
+## More coming soon

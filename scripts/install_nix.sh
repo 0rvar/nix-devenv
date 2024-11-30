@@ -1,21 +1,16 @@
 #!/usr/bin/env bash
 
-shell_name=$(basename $SHELL)
-IS_SOURCED=false
-
-# Determine if script can/should be sourced
-if [[ "$shell_name" != "fish" ]]; then
-  if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    echo "ERROR: This script must be sourced. Please run:"
-    echo "  source ${0}"
-    exit 1
-  fi
-  IS_SOURCED=true
-fi
-
 set -euo pipefail
 
 DID_CHANGE_ENV=false
+
+# Function to detect if running in a container (Docker or Podman)
+is_running_in_container() {
+  # Check for container markers
+  [ -f /.dockerenv ] ||                                            # Docker marker
+    [ -f /run/.containerenv ] ||                                   # Podman marker
+    grep -q 'docker\|podman\|container' /proc/1/cgroup 2>/dev/null # cgroup check for both
+}
 
 NIX_INSTALLED=$(command -v nix || true)
 if [ -z "$NIX_INSTALLED" ]; then
@@ -23,30 +18,29 @@ if [ -z "$NIX_INSTALLED" ]; then
   echo
   echo "Note: the installer may ask for your password to install nix."
   echo
-  curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install --no-confirm
+
+  # Set installer flags based on environment
+  INSTALL_FLAGS=(install)
+  if is_running_in_container; then
+    INSTALL_FLAGS+=(linux --init none)
+  fi
+  INSTALL_FLAGS+=(--no-confirm)
+  echo "Running with flags: '${INSTALL_FLAGS[*]}'"
+
+  curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- ${INSTALL_FLAGS[@]}
   echo "[√] Nix installed"
   echo
   DID_CHANGE_ENV=true
+
+  if is_running_in_container; then
+    sudo chown -R $(id -u):$(id -g) /nix
+  fi
 
   # Try to source nix profile - needed for the rest of the script
   if [ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
     source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
   else
     echo "ERROR: Nix profile not found. Please restart your terminal and run this script again."
-    if [ "$IS_SOURCED" = true ]; then
-      return 1
-    else
-      exit 1
-    fi
-  fi
-fi
-
-if ! command -v nix >/dev/null; then
-  echo "ERROR: Nix commands not available in current shell session."
-  echo "Please restart your terminal and run this script again."
-  if [ "$IS_SOURCED" = true ]; then
-    return 1
-  else
     exit 1
   fi
 fi
@@ -82,6 +76,7 @@ grep -q "hide_env_diff = true" ~/.config/direnv/direnv.toml || (
     echo "hide_env_diff = true" >>~/.config/direnv/direnv.toml
 )
 
+shell_name=$(basename "$SHELL")
 if [ "$shell_name" = "fish" ]; then
   if ! fish -c "functions -q __direnv_export_eval" >/dev/null; then
     echo "Adding direnv hook to fish shell (~/.config/fish/conf.d/direnv.fish)"
@@ -116,19 +111,10 @@ else
   echo "IMPORTANT: Add the direnv hook to your shell profile manually:"
   echo "https://direnv.net/docs/hook.html"
   echo "Then restart your terminal session"
-  if [ "$IS_SOURCED" = true ]; then
-    return 1
-  else
-    exit 1
-  fi
+  exit 0
 fi
 
-REQUIRE_MANUAL_SHELL_RESTART=false
-if [[ $DID_CHANGE_ENV = true ]] && [[ ! $IS_SOURCED ]]; then
-  REQUIRE_MANUAL_SHELL_RESTART=true
-fi
-
-if [ "$REQUIRE_MANUAL_SHELL_RESTART" = true ]; then
+if [[ "$DID_CHANGE_ENV" = "true" ]]; then
   echo
   echo
   echo " =========== IMPORTANT ===================== "
@@ -136,7 +122,7 @@ if [ "$REQUIRE_MANUAL_SHELL_RESTART" = true ]; then
   echo " =========================================== "
   echo
   echo
-elif [ "$DID_CHANGE_ENV" = true ]; then
-  echo "Restarting shell. Please run 'direnv allow' in your project directory."
-  exec $SHELL
+  exit 0
+else
+  echo "Everything up to date, nothing to do"
 fi
