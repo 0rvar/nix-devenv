@@ -12,10 +12,10 @@ cp "$(dirname "$0")/flake-test/flake.nix" "$TEST_DIR/"
 cp "$(dirname "$0")/flake-test/.envrc" "$TEST_DIR/"
 
 # Build the test image
-docker build -t nix-test-env "$(dirname "$0")"
+podman build -t nix-test-env "$(dirname "$0")"
 
 # Run docker with the prepared image
-docker run -it --rm \
+podman run -it --rm \
   --privileged \
   -v "$TEST_DIR:/workspace" \
   -w /workspace \
