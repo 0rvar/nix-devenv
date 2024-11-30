@@ -21,7 +21,7 @@ NIX_INSTALLED=$(command -v nix || true)
 if [ -z "$NIX_INSTALLED" ]; then
   echo "Nix is not installed. Installing..."
   echo
-  echo "Note: the installer will ask for your password to install nix."
+  echo "Note: the installer may ask for your password to install nix."
   echo
   curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install --no-confirm
   echo "[√] Nix installed"
@@ -101,7 +101,6 @@ elif [ "$shell_name" = "bash" ]; then
     (
       echo "Adding direnv hook to ~/.bashrc" &&
         echo "eval \"\$(direnv hook bash)\"" >>~/.bashrc &&
-        eval "$(direnv hook bash)" && # Immediately enable direnv
         DID_CHANGE_ENV=true
     )
 elif [ "$shell_name" = "zsh" ]; then
@@ -111,7 +110,6 @@ elif [ "$shell_name" = "zsh" ]; then
     (
       echo "Adding direnv hook to ~/.zshrc" &&
         echo "eval \"\$(direnv hook zsh)\"" >>~/.zshrc &&
-        eval "$(direnv hook zsh)" && # Immediately enable direnv
         DID_CHANGE_ENV=true
     )
 else
@@ -138,4 +136,7 @@ if [ "$REQUIRE_RESTART" = true ]; then
   echo " =========================================== "
   echo
   echo
+else
+  echo "Restarting shell. Please run 'direnv allow' in your project directory."
+  exec $SHELL
 fi
