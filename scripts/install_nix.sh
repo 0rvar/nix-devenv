@@ -123,12 +123,12 @@ else
   fi
 fi
 
-REQUIRE_RESTART=false
+REQUIRE_MANUAL_SHELL_RESTART=false
 if [[ $DID_CHANGE_ENV = true ]] && [[ ! $IS_SOURCED ]]; then
-  REQUIRE_RESTART=true
+  REQUIRE_MANUAL_SHELL_RESTART=true
 fi
 
-if [ "$REQUIRE_RESTART" = true ]; then
+if [ "$REQUIRE_MANUAL_SHELL_RESTART" = true ]; then
   echo
   echo
   echo " =========== IMPORTANT ===================== "
@@ -136,7 +136,7 @@ if [ "$REQUIRE_RESTART" = true ]; then
   echo " =========================================== "
   echo
   echo
-else
+elif [ "$DID_CHANGE_ENV" = true ]; then
   echo "Restarting shell. Please run 'direnv allow' in your project directory."
   exec $SHELL
 fi
