@@ -6,22 +6,9 @@ REQUIRE_RESTART=false
 
 NIX_INSTALLED=$(command -v nix || true)
 if [ -z "$NIX_INSTALLED" ]; then
-  echo "Nix is not installed. Install?"
-  select yn in "Yes" "No"; do
-    case $yn in
-    Yes)
-      break
-      ;;
-    No)
-      exit 1
-      ;;
-    esac
-  done
-
+  echo "Nix is not installed. Installing..."
   echo
-  echo "Note:"
-  echo "The nix installer will now be fetched and run."
-  echo "The installer will ask for your password to install nix."
+  echo "Note: the installer will ask for your password to install nix."
   echo
   curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install --no-confirm
   echo "[√] Nix installed"
@@ -30,6 +17,7 @@ if [ -z "$NIX_INSTALLED" ]; then
   # Try to source nix profile
   if [ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
     source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+    REQUIRE_RESTART=true
   else
     echo "ERROR: Nix profile not found. Please restart your terminal and run this script again."
     exit 1
