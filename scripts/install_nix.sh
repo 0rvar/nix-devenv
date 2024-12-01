@@ -4,14 +4,6 @@ set -euo pipefail
 
 DID_CHANGE_ENV=false
 
-# Function to detect if running in a container (Docker or Podman)
-is_running_in_container() {
-  # Check for container markers
-  [ -f /.dockerenv ] ||                                            # Docker marker
-    [ -f /run/.containerenv ] ||                                   # Podman marker
-    grep -q 'docker\|podman\|container' /proc/1/cgroup 2>/dev/null # cgroup check for both
-}
-
 NIX_INSTALLED=$(command -v nix || true)
 if [ -z "$NIX_INSTALLED" ]; then
   echo "Nix is not installed. Installing..."
@@ -19,22 +11,12 @@ if [ -z "$NIX_INSTALLED" ]; then
   echo "Note: the installer may ask for your password to install nix."
   echo
 
-  # Set installer flags based on environment
-  INSTALL_FLAGS=(install)
-  if is_running_in_container; then
-    INSTALL_FLAGS+=(linux --init none)
-  fi
-  INSTALL_FLAGS+=(--no-confirm)
-  echo "Running with flags: '${INSTALL_FLAGS[*]}'"
+  INSTALL_FLAGS=(${NIX_INSTALLER_ARGS:-"install --no-confirm"})
 
   curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- ${INSTALL_FLAGS[@]}
   echo "[√] Nix installed"
   echo
   DID_CHANGE_ENV=true
-
-  if is_running_in_container; then
-    sudo chown -R $(id -u):$(id -g) /nix
-  fi
 
   # Try to source nix profile - needed for the rest of the script
   if [ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then

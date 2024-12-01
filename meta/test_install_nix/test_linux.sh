@@ -87,7 +87,7 @@ run_with_shell() {
       cd /workspace
       
       # Install nix and direnv first
-      $shell -il -c './install_nix.sh'
+      $shell -il -c 'NIX_INSTALLER_ARGS=\"install linux --init none --no-confirm\" ./install_nix.sh'
       
       # Run the actual tests
       $shell -il -c '$(tests $shell)'

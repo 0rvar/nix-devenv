@@ -14,14 +14,8 @@ RUN apt-get update && \
     fish \
     && rm -rf /var/lib/apt/lists/*
 
-# Create test user
-RUN useradd -m tester && \
-    echo "tester ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/tester
-
 # Set up zsh configuration
-RUN cp /etc/zsh/newuser.zshrc.recommended /home/tester/.zshrc && \
-    chown -R tester:tester /home/tester/.zshrc
-USER tester
+RUN cp /etc/zsh/newuser.zshrc.recommended /root/.zshrc
 RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 
 WORKDIR /workspace
