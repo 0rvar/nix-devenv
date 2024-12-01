@@ -90,7 +90,7 @@ elif [ "$shell_name" = "zsh" ]; then
         DID_CHANGE_ENV=true
     )
 else
-  echo "IMPORTANT: Add the direnv hook to your shell profile manually:"
+  echo "IMPORTANT: Add the direnv hook to your shell ($shell_name) profile manually:"
   echo "https://direnv.net/docs/hook.html"
   echo "Then restart your terminal session"
   exit 0
